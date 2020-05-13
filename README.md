@@ -1,3 +1,11 @@
+## Introduction
+This repository contains an extended version of Microsoft Graph Connect Sample which shows how to perform the following operations:
+1. View user's calendar;
+2. View user's used insights;
+3. View user's recent files;
+4. View user's received email.
+5. View user's sent email.
+
 ## Prerequisites
 
 To use the Microsoft Graph Connect Sample for ASP.NET Core 2.1, you need the following:
