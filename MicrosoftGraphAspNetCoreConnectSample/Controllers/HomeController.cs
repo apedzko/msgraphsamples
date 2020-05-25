@@ -3,28 +3,26 @@
 *  See LICENSE in the source repository root for complete license information. 
 */
 
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MicrosoftGraphAspNetCoreConnectSample.Helpers;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
-using Microsoft.AspNetCore.Hosting;
-using System.Security.Claims;
+using Newtonsoft.Json;
 
 namespace MicrosoftGraphAspNetCoreConnectSample.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IConfiguration _configuration;
-        private readonly IHostingEnvironment _env;
         private readonly IGraphSdkHelper _graphSdkHelper;
+        private readonly IIManageService _iManageService;
 
-        public HomeController(IConfiguration configuration, IHostingEnvironment hostingEnvironment, IGraphSdkHelper graphSdkHelper)
+        public HomeController(IGraphSdkHelper graphSdkHelper, IIManageService iManageService)
         {
-            _configuration = configuration;
-            _env = hostingEnvironment;
             _graphSdkHelper = graphSdkHelper;
+            _iManageService = iManageService;
         }
 
         [AllowAnonymous]
@@ -44,7 +42,30 @@ namespace MicrosoftGraphAspNetCoreConnectSample.Controllers
             }
 
             return View();
-        }       
+        }
+
+        [AllowAnonymous]
+        // Load user's timeline
+        public async Task<IActionResult> Timeline(string email)
+        {
+            ViewData["Title"] = "Timeline";
+
+            if (User.Identity.IsAuthenticated)
+            {
+                // Get users's email.
+                email = GetEmail(email);
+                ViewData["Email"] = email;
+
+                var graphItems = await GraphService.GetAllItems(GetClient(), email);
+                var iManageItems = await _iManageService.GetRecentDocumentsAsync(email);
+
+                var model = graphItems.Union(iManageItems).OrderByDescending(item => item.CreatedAt);
+
+                return View(model);
+            }
+
+            return View();
+        }
 
         [AllowAnonymous]
         // Load user's calendar.
@@ -75,7 +96,7 @@ namespace MicrosoftGraphAspNetCoreConnectSample.Controllers
                 ViewData["Response"] = await GraphService.GetUserInsightsJson(GetClient(), email, HttpContext);
             }
 
-            ViewData["Email"] = "Recent Insights";
+            ViewData["Title"] = "Recent Insights";
 
             return View("Results");
         }
@@ -88,13 +109,12 @@ namespace MicrosoftGraphAspNetCoreConnectSample.Controllers
             {
                 // Get users's email.
                 string email = GetEmail(null);
-
                 ViewData["Email"] = email;
 
                 ViewData["Response"] = await GraphService.GetUserFilesJson(GetClient(), email, HttpContext);
             }
 
-            ViewData["Email"] = "Recent Files";
+            ViewData["Title"] = "Recent Files";
 
             return View("Results");
         }
@@ -125,11 +145,30 @@ namespace MicrosoftGraphAspNetCoreConnectSample.Controllers
             {
                 // Get users's email.
                 string email = GetEmail(null);
+                ViewData["Email"] = email;
 
                 ViewData["Response"] = await GraphService.GetUserSentEmailJson(GetClient(), email, HttpContext);
             }
 
             ViewData["Title"] = "Sent Email";
+
+            return View("Results");
+        }
+
+        [AllowAnonymous]
+        // Load user's recent documents
+        public async Task<IActionResult> RecentDocuments()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                // Get users's email.
+                string email = GetEmail(null);
+                ViewData["Email"] = email;
+
+                ViewData["Response"] = await _iManageService.GetRecentDocumentsJsonAsync(email);
+            }
+
+            ViewData["Title"] = "Recent Documents (iManage)";
 
             return View("Results");
         }

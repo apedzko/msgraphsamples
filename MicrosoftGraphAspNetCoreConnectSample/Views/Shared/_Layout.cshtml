@@ -36,11 +36,13 @@
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li><a asp-area="" asp-controller="Home" asp-action="Index">Profile</a></li>
+                    <li><a asp-area="" asp-controller="Home" asp-action="Timeline">Timeline</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="Calendar">Calendar</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="Insights">Recently used (Insights)</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="Files">Recent Files</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="ReceivedMail">Received Mail</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="SentMail">Sent Mail</a></li>
+                    <li><a asp-area="" asp-controller="Home" asp-action="RecentDocuments">Recent Documents (iManage)</a></li>
                 </ul>
                 @await Html.PartialAsync("_LoginPartial")
             </div>

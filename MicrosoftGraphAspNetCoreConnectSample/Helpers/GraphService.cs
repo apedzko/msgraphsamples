@@ -4,13 +4,12 @@
 */
 
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Graph;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MicrosoftGraphAspNetCoreConnectSample.Helpers
@@ -123,7 +122,7 @@ namespace MicrosoftGraphAspNetCoreConnectSample.Helpers
 
             return pictureStream;
         }
-       
+
 
         public static async Task<string> GetUserCalendarJson(GraphServiceClient graphClient, string email, HttpContext httpContext)
         {
@@ -226,6 +225,40 @@ namespace MicrosoftGraphAspNetCoreConnectSample.Helpers
             {
                 return await FormatError(email, httpContext, e);
             }
+        }
+
+        public static async Task<List<ItemDetails>> GetAllItems(GraphServiceClient graphClient, string email)
+        {
+            var result = new List<ItemDetails>();
+
+            if (email == null) return await Task.FromResult(result);
+
+            foreach (var @event in await graphClient.Users[email].Events.Request().GetAsync())
+            {
+                result.Add(new ItemDetails { CreatedAt = @event.CreatedDateTime, Type = "Outlook Calendar Event", Name = @event.Subject });
+            }
+
+            foreach (var insight in await graphClient.Users[email].Insights.Used.Request().GetAsync())
+            {
+                result.Add(new ItemDetails { CreatedAt = insight.LastUsed.LastAccessedDateTime, Type = "Recently Used File (Insights)", Name = insight.ResourceVisualization.Title});
+            }
+
+            foreach (var file in await graphClient.Users[email].Drive.Recent().Request().GetAsync())
+            {
+                result.Add(new ItemDetails { CreatedAt = file.CreatedDateTime, Type = "Recently Used File", Name = file.Name });
+            }
+
+            foreach (var receivedMessage in await graphClient.Users[email].MailFolders.Inbox.Messages.Request().GetAsync())
+            {
+                result.Add(new ItemDetails { CreatedAt = receivedMessage.CreatedDateTime, Type = "Outlook Email Received", Name = receivedMessage.Subject });
+            }
+
+            foreach (var sentItem in await graphClient.Users[email].MailFolders.SentItems.Messages.Request().GetAsync())
+            {
+                result.Add(new ItemDetails { CreatedAt = sentItem.CreatedDateTime, Type = "Outlook Email Sent", Name = sentItem.Subject });
+            }
+
+            return await Task.FromResult(result);
         }
 
         private static string EmailMissingError()

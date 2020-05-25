@@ -1,0 +1,34 @@
+﻿@model IEnumerable<ItemDetails>
+
+<h2>@ViewData["Title"]</h2>
+
+@if (!User.Identity.IsAuthenticated)
+{
+    <br />
+    <p>Choose <b>Sign in</b> at the top of the page and sign in with your work or school account.</p>
+}
+
+@if (User.Identity.IsAuthenticated)
+{
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Name</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model)
+            {
+
+                <tr>
+                    <td>@item.CreatedAt</td>
+                    <td>@item.Type</td>
+                    <td>@item.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

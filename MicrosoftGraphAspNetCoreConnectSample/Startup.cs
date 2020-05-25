@@ -59,6 +59,7 @@ namespace MicrosoftGraphAspNetCoreConnectSample
             //services.AddSingleton<IConfiguration>(Configuration);
             services.AddSingleton<IGraphAuthProvider, GraphAuthProvider>();
             services.AddTransient<IGraphSdkHelper, GraphSdkHelper>();
+            services.AddTransient<IIManageService, IManageService>();
 
             services.Configure<HstsOptions>(options =>
             {
